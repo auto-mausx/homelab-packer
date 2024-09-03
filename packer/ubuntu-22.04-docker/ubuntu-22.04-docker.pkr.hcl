@@ -27,7 +27,7 @@ variable "proxmox_api_token_secret" {
 }
 
 # Resource Definiation for the VM Template
-source "proxmox-iso" "ubuntu-server-jammy" {
+source "proxmox-iso" "ubuntu-server-docker" {
  
     # Proxmox Connection Settings
     proxmox_url = "${var.proxmox_api_url}"
@@ -39,7 +39,7 @@ source "proxmox-iso" "ubuntu-server-jammy" {
     # VM General Settings
     node = "prox"
     vm_id = "100"
-    vm_name = "ubuntu-server-jammy"
+    vm_name = "ubuntu-server-docker"
     template_description = "Ubuntu Server 22.04LTS Image"
 
     # VM OS Settings
@@ -118,7 +118,7 @@ source "proxmox-iso" "ubuntu-server-jammy" {
 build {
 
     name = "ubuntu-server-2204"
-    sources = ["proxmox-iso.ubuntu-server-jammy"]
+    sources = ["proxmox-iso.ubuntu-server-docker"]
 
     # Provisioning the VM Template for Cloud-Init Integration in Proxmox #1
     provisioner "shell" {
@@ -155,6 +155,16 @@ build {
             "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
             "sudo apt-get -y update",
             "sudo apt-get install -y docker-ce docker-ce-cli containerd.io"
+        ]
+    }
+    
+    # Install python3, pip, and docker SDK
+    provisioner "shell" {
+        inline = [
+            "sudo apt-get -y update",
+            "sudo apt-get install python3 -y",
+            "sudo apt-get install python3-pip -y",
+            "yes | pip3 install docker"
         ]
     }
 }
